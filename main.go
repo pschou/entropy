@@ -23,44 +23,53 @@ var (
 )
 
 func main() {
-	fmt.Println("Entropy builder - maintain a certain level of entropy, Version", version, "(https://github.com/pschou/entropy)")
+	fmt.Println("Entropy builder - maintain a certain level of entropy, Version", version,
+		"(https://github.com/pschou/entropy)")
 	flag.Parse()
-	for {
-		for {
+	sum = sha256.New() // Create a new hash
+
+	for { // Loop indefinitely
+		for { // Loop until the minimum entropy is met
+			// Get the current entropy state
 			if cnt, err := entropy.GetEntCnt(); err != nil {
-				log.Fatal("failed to get entropy: %v", err)
+				log.Fatalf("failed to get entropy: %v", err)
 			} else {
 				if *debug {
 					fmt.Println("cnt", cnt)
 				}
 				if cnt > *min {
-					break
+					break // Minimum has been met, go to outer loop to sleep
 				}
 			}
-			sum = sha256.New()
-			for _, f := range []string{"/proc/meminfo", "/proc/self/maps", "/proc/self/smaps", "/proc/interrupts", "/proc/diskstats", "/proc/self/stat"} {
-				t()
+
+			// Loop over a bunch of kernel handles and copy them to the hash
+			for _, f := range []string{"/proc/meminfo", "/proc/self/maps",
+				"/proc/self/smaps", "/proc/interrupts", "/proc/diskstats", "/proc/self/stat"} {
+				t() // Add some nanosecond bits
 				if fh, err := os.Open(f); err == nil {
 					io.Copy(sum, fh)
 					fh.Close()
 				}
 			}
-			buf := sum.Sum(nil)
+
+			buf := sum.Sum(nil) // Do the hash
+			sum = sha256.New()  // Create a new hash
 			bits := len(buf) * 8
 			if *debug {
-				fmt.Printf("%x", sum)
-				fmt.Printf("adding %d bytes with %d bits of entropy\n", len(buf), bits)
+				fmt.Printf("adding %d bytes / %d bits: %x\n", len(buf), bits, sum)
 			}
 			if err := entropy.AddEntropy(bits, buf); err != nil {
-				log.Fatal("failed to add entropy: %v", err)
+				log.Fatalf("failed to add entropy: %v", err)
 			}
 		}
+		t() // Add some nanosecond bits
 		time.Sleep(*step)
 	}
 }
 
 var b = make([]byte, 8)
 
+// Get the current nanoseconds from the clock and add this to the hash
 func t() {
 	ns := time.Now().Nanosecond()
 	binary.LittleEndian.PutUint64(b, uint64(ns))
