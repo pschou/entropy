@@ -1,0 +1,4 @@
+github.com/jlowellwofford/entropy v0.0.0-20201204222052-920faab30b3a h1:ROb0s92vNONkaTqgXlDV/IblzwlTWpaOKDZkTV0fda4=
+github.com/jlowellwofford/entropy v0.0.0-20201204222052-920faab30b3a/go.mod h1:n3OMpNlF3pWzrhrvRmiH1qF7+g0DFFVRR4p6IOwQ9Bc=
+golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 h1:nxC68pudNYkKU6jWhgrqdreuFiOQWj1Fs7T3VrH4Pjw=
+golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
