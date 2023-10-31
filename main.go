@@ -42,6 +42,7 @@ func main() {
 				t()
 				if fh, err := os.Open(f); err == nil {
 					io.Copy(sum, fh)
+					fh.Close()
 				}
 			}
 			buf := sum.Sum(nil)
