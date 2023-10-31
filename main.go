@@ -20,6 +20,7 @@ var (
 	debug   = flag.Bool("debug", false, "turn on debug")
 	version string
 	sum     hash.Hash
+	buf     = []byte{}
 )
 
 func main() {
@@ -28,6 +29,10 @@ func main() {
 	flag.Parse()
 	sum = sha256.New() // Create a new hash
 
+	if err := entropy.AddEntropy(0, buf); err != nil {
+		log.Fatalf("failed to add entropy: %v", err)
+	}
+
 	for { // Loop indefinitely
 		for { // Loop until the minimum entropy is met
 			// Get the current entropy state
@@ -35,7 +40,7 @@ func main() {
 				log.Fatalf("failed to get entropy: %v", err)
 			} else {
 				if *debug {
-					fmt.Println("cnt", cnt)
+					log.Println("entropy:", cnt)
 				}
 				if cnt > *min {
 					break // Minimum has been met, go to outer loop to sleep
@@ -52,11 +57,11 @@ func main() {
 				}
 			}
 
-			buf := sum.Sum(nil) // Do the hash
-			sum = sha256.New()  // Create a new hash
+			buf = sum.Sum(nil) // Do the hash
+			sum = sha256.New() // Create a new hash
 			bits := len(buf) * 8
 			if *debug {
-				fmt.Printf("adding %d bytes / %d bits: %x\n", len(buf), bits, sum)
+				log.Printf("adding %d bytes / %d bits: %x\n", len(buf), bits, buf)
 			}
 			if err := entropy.AddEntropy(bits, buf); err != nil {
 				log.Fatalf("failed to add entropy: %v", err)
