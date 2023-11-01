@@ -15,12 +15,14 @@ import (
 )
 
 var (
-	step    = flag.Duration("interval", time.Second, "between entropy avail checks")
-	min     = flag.Int("min", 3000, "minimum entropy to maintain")
-	debug   = flag.Bool("debug", false, "turn on debug")
-	version string
-	sum     hash.Hash
-	buf     = []byte{}
+	step      = flag.Duration("interval", time.Second/4, "between entropy avail checks")
+	min       = flag.Int("min", 1000, "minimum entropy to maintain")
+	dutyCycle = flag.Int("duty", 1000, "create up to these many seeds per interval")
+	debug     = flag.Bool("debug", false, "turn on debug")
+	version   string
+	sum       hash.Hash
+	buf       = []byte{}
+	//maxSeen, atMaxSeen int
 )
 
 func main() {
@@ -34,7 +36,7 @@ func main() {
 	}
 
 	for { // Loop indefinitely
-		for { // Loop until the minimum entropy is met
+		for j := 0; j < *dutyCycle; j++ { // Loop until the minimum entropy is met
 			// Get the current entropy state
 			if cnt, err := entropy.GetEntCnt(); err != nil {
 				log.Fatalf("failed to get entropy: %v", err)
@@ -42,7 +44,7 @@ func main() {
 				if *debug {
 					log.Println("entropy:", cnt)
 				}
-				if cnt > *min {
+				if cnt >= *min {
 					break // Minimum has been met, go to outer loop to sleep
 				}
 			}
